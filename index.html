@@ -907,7 +907,8 @@ if('serviceWorker' in navigator){
 <script>
 /* ============ STATE ============ */
 const BLANK_PROFILE={address:'',phone:'',gstin:'',dl:'',prefix:'INV',footer:'',
-  ownerName:'',ownerRole:'Proprietor',ownerReg:'',signatoryName:'',driveSyncUrl:''};
+  ownerName:'',ownerRole:'Proprietor',ownerReg:'',signatoryName:'',
+  driveSyncUrl:'https://script.google.com/macros/s/AKfycbxcPSG-QIZtxUNJ-VKP5hkqQEdxTzNdVWTceZuo-Dd2jh_rXFf1WZUcMKOKtNWhs0fkJA/exec'};
 const BLANK = { shopName:"Your Medical Store",
   shopProfile:JSON.parse(JSON.stringify(BLANK_PROFILE)),
   customers:[], stock:[], purchases:[], payments:[], campaigns:[], nextInvoiceSeq:1 };
@@ -999,9 +1000,11 @@ function previewInvoiceNo(){
 
 /* ============ STORAGE ============ */
 async function loadData(){
+  let hadSavedData=false;
   try{
     const res = await window.storage.get(STORAGE_KEY, true);
     if(res && res.value){
+      hadSavedData=true;
       const p = JSON.parse(res.value);
       DATA = Object.assign(JSON.parse(JSON.stringify(BLANK)), p);
       DATA.shopProfile = Object.assign(JSON.parse(JSON.stringify(BLANK_PROFILE)), DATA.shopProfile||{});
@@ -1015,6 +1018,9 @@ async function loadData(){
   }catch(e){ console.log('No logo/signature saved yet.'); }
   document.getElementById('shopNameDisplay').textContent = DATA.shopName||"Your Medical Store";
   renderAll();
+  // First run on a fresh install: persist the built-in Drive sync URL so it's
+  // saved to storage and the first sync to the Apps Script web app kicks off.
+  if(!hadSavedData && DATA.shopProfile.driveSyncUrl){ persist(); }
 }
 async function persistAssets(){
   try{
